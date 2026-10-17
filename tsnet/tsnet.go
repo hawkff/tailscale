@@ -301,6 +301,11 @@ type Server struct {
 	// field at zero unless you know what you are doing.
 	Port uint16
 
+	// AmneziaWG holds wireguard-go UAPI lines with the AmneziaWG settings of
+	// the node's WireGuard device. Every node it talks to needs the same
+	// settings. Empty keeps plain WireGuard.
+	AmneziaWG string
+
 	// AdvertiseTags specifies tags that should be applied to this node, for
 	// purposes of ACL enforcement. These can be referenced from the ACL policy
 	// document. Note that advertising a tag on the client doesn't guarantee
@@ -868,6 +873,7 @@ func (s *Server) start() (reterr error) {
 		ExtraRootCAs:  sys.ExtraRootCAs,
 		Metrics:       sys.UserMetricsRegistry(),
 		LookupHook:    s.LookupHook,
+		AmneziaWG:     s.AmneziaWG,
 	}
 	if s.Tun != nil {
 		if s.Router != nil {

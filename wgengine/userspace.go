@@ -232,6 +232,11 @@ type Config struct {
 	// If zero, a port is automatically selected.
 	ListenPort uint16
 
+	// AmneziaWG holds wireguard-go UAPI lines with the AmneziaWG settings of
+	// the device, set once when the device is created. Every peer this node
+	// talks to needs the same settings. Empty keeps plain WireGuard.
+	AmneziaWG string
+
 	// RespondToPing determines whether this engine should internally
 	// reply to ICMP pings, without involving the OS.
 	// Used in "fake" mode for development.
@@ -528,6 +533,11 @@ func NewUserspaceEngine(logf logger.Logf, conf Config) (_ Engine, reterr error) 
 	e.wgdev = wgcfg.NewDevice(e.ctx, e.tundev, e.magicConn.Bind(), e.wgLogger.DeviceLogger, e.workers)
 	e.tundev.SetInputDevice(e.wgdev)
 	closePool.addFunc(e.wgdev.Close)
+	if conf.AmneziaWG != "" {
+		if err := e.wgdev.IpcSet(conf.AmneziaWG); err != nil {
+			return nil, fmt.Errorf("wgengine: AmneziaWG settings: %w", err)
+		}
+	}
 	closePool.addFunc(func() {
 		if err := e.magicConn.Close(); err != nil {
 			e.logf("error closing magicconn: %v", err)
